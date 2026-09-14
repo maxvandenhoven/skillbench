@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "skillbench"
+version = "0.1.0"
+description = "Cross-harness agent-skill conformance probe built on Omnigent's inner executors."
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+# Only what the pinned executors actually need at runtime. Everything else the
+# runner uses (argparse, asyncio, dataclasses, json, pathlib, tempfile,
+# hashlib, datetime, time) is standard library.
+#
+# ``omnigent-client`` / ``omnigent-ui-sdk`` are *transitive* requirements of
+# ``omnigent`` that are version-locked to the same ``0.14.0.dev0`` lockstep
+# release. That version is not on PyPI, and uv only applies
+# ``[tool.uv.sources]`` to a project's own direct dependencies -- so they are
+# listed here explicitly to give the git-subdirectory sources below something
+# to attach to. Without this, ``uv sync`` fails with
+# "omnigent-client==0.14.0.dev0 not found in registry".
+dependencies = [
+    "omnigent",
+    "omnigent-client",
+    "omnigent-ui-sdk",
+]
+
+[project.scripts]
+skillbench = "skillbench:main"
+
+# Pinned to a verified full commit, never a moving branch. The three packages
+# release together at one version, so all three sources must name the same rev.
+[tool.uv.sources]
+omnigent = { git = "https://github.com/omnigent-ai/omnigent.git", rev = "322746fd2b00065627a41e4137fd0bdf55e2410a" }
+omnigent-client = { git = "https://github.com/omnigent-ai/omnigent.git", rev = "322746fd2b00065627a41e4137fd0bdf55e2410a", subdirectory = "sdks/python-client" }
+omnigent-ui-sdk = { git = "https://github.com/omnigent-ai/omnigent.git", rev = "322746fd2b00065627a41e4137fd0bdf55e2410a", subdirectory = "sdks/ui" }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/skillbench"]
